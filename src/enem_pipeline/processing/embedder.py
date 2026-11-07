@@ -28,7 +28,7 @@ class GeminiEmbedder:
         # Trunca texto se for excessivamente longo para evitar estouro de tokens
         truncated_text = text[:8000]
 
-        # Tenta usar a biblioteca oficial google-genai se instalada
+        # 1. Tenta usar a biblioteca oficial google-genai
         try:
             from google import genai
             client = genai.Client(api_key=self.api_key)
@@ -36,14 +36,15 @@ class GeminiEmbedder:
                 model=self.MODEL_NAME,
                 contents=truncated_text,
             )
+            if hasattr(result, "embedding") and result.embedding:
+                return list(result.embedding.values)
             if hasattr(result, "embeddings") and result.embeddings:
-                return result.embeddings[0].values
-        except Exception:
-            # Fallback direto via REST API caso o pacote não esteja no path local
-            pass
+                return list(result.embeddings[0].values)
+        except Exception as exc:
+            logger.debug(f"[EMBEDDER] google-genai SDK falhou ({exc}). Tentando REST v1...")
 
-        # Chamada REST direta para a API do Google Gemini
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.MODEL_NAME}:embedContent?key={self.api_key}"
+        # 2. Chamada REST direta para a API do Google Gemini (v1)
+        url = f"https://generativelanguage.googleapis.com/v1/models/{self.MODEL_NAME}:embedContent?key={self.api_key}"
         payload = {
             "model": f"models/{self.MODEL_NAME}",
             "content": {
@@ -62,7 +63,7 @@ class GeminiEmbedder:
             else:
                 logger.warning(f"[EMBEDDER] Erro HTTP {response.status_code}: {response.text}")
         except Exception as exc:
-            logger.error(f"[EMBEDDER] Falha na requisição de embedding: {exc}")
+            logger.error(f"[EMBEDDER] Falha na requisição de embedding REST: {exc}")
 
         return None
 
@@ -89,7 +90,6 @@ class GeminiEmbedder:
         processed = 0
 
         for doc in docs:
-            # Combina título e conteúdo processado para máxima precisão semântica
             content_to_embed = f"{doc.title or ''}\n\n{doc.processed_content or doc.original_content}"
             vector = self.generate_embedding(content_to_embed)
 
