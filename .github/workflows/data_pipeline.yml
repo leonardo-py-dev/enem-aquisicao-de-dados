@@ -1,0 +1,91 @@
+name: ENEM Predictor — Data Pipeline & Ingestion
+
+on:
+  schedule:
+    # Executa automaticamente todo domingo às 03:00 UTC (00:00 Horário de Brasília)
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Ação a ser executada'
+        required: true
+        default: 'run-all'
+        type: choice
+        options:
+          - 'run-all'
+          - 'seed'
+          - 'classify'
+          - 'embed'
+          - 'status'
+      limit:
+        description: 'Limite de registros por coletor / processamento'
+        required: false
+        default: '50'
+        type: string
+      source:
+        description: 'Fonte específica (apenas se action for run isolado)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'inep'
+          - 'ibge'
+          - 'camara'
+          - 'openalex'
+
+jobs:
+  pipeline:
+    name: Ingestão de Dados na Nuvem (Supabase)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Ambiente Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar Dependências do Pipeline
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Executar Pipeline contra o Supabase
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          ACTION="${{ github.event.inputs.action || 'run-all' }}"
+          LIMIT="${{ github.event.inputs.limit || '50' }}"
+          SOURCE="${{ github.event.inputs.source || 'all' }}"
+
+          echo "=========================================="
+          echo "Disparando ação: $ACTION (limite=$LIMIT)"
+          echo "=========================================="
+
+          if [ "$ACTION" = "run-all" ]; then
+            python -m enem_pipeline.cli run-all --limit "$LIMIT"
+          elif [ "$ACTION" = "seed" ]; then
+            python -m enem_pipeline.cli seed
+          elif [ "$ACTION" = "classify" ]; then
+            python -m enem_pipeline.cli classify --limit "$LIMIT"
+          elif [ "$ACTION" = "embed" ]; then
+            python -m enem_pipeline.cli embed --limit "$LIMIT"
+          elif [ "$ACTION" = "status" ]; then
+            python -m enem_pipeline.cli status
+          else
+            python -m enem_pipeline.cli run --source "$SOURCE" --limit "$LIMIT"
+          fi
+
+          echo "=========================================="
+          echo "Painel de Status Final pós-execução:"
+          echo "=========================================="
+          python -m enem_pipeline.cli status

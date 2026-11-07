@@ -16,6 +16,7 @@ from enem_pipeline.db.seed import seed_database
 from enem_pipeline.db.models import Source, CollectionRun, Document, Indicator, Topic, DocumentTopic, HistoricalTheme
 from enem_pipeline.collectors import InepCollector, IbgeCollector, CamaraCollector, OpenAlexCollector, COLLECTORS_REGISTRY
 from enem_pipeline.processing.classifier import ThematicClassifier
+from enem_pipeline.processing.embedder import GeminiEmbedder
 from enem_pipeline.scheduler import start_scheduler
 
 app = typer.Typer(
@@ -75,10 +76,23 @@ def classify(
 
 
 @app.command()
+def embed(
+    limit: int = typer.Option(50, "--limit", "-l", help="Limite de documentos para gerar embeddings"),
+):
+    """Gera vetores de embeddings semânticos com Google Gemini API para documentos pendentes."""
+    init_db()
+    embedder = GeminiEmbedder()
+    console.print(f"[bold blue]Iniciando geração de embeddings (limite={limit})...[/bold blue]")
+    with get_db() as db:
+        count = embedder.embed_pending_documents(db, limit=limit)
+    console.print(f"[bold green][OK] Vetorização concluída: {count} documentos incorporados![/bold green]")
+
+
+@app.command()
 def run_all(
     limit: int = typer.Option(25, "--limit", "-l", help="Limite de itens por coletor"),
 ):
-    """Executa todos os coletores prioritários e classifica os documentos ingeridos."""
+    """Executa todos os coletores prioritários, classifica e vetoriza os documentos ingeridos."""
     init_db()
     console.print("[bold cyan]==================================================[/bold cyan]")
     console.print("[bold cyan] INICIANDO PIPELINE COMPLETO DO ENEM PREDICTOR    [/bold cyan]")
@@ -88,24 +102,28 @@ def run_all(
         seed_database(db)
 
         # 1. INEP
-        console.print("\n[bold yellow]1/4. Executando coletor INEP...[/bold yellow]")
+        console.print("\n[bold yellow]1/5. Executando coletor INEP...[/bold yellow]")
         InepCollector().collect(db, max_items=limit)
 
         # 2. IBGE
-        console.print("\n[bold yellow]2/4. Executando coletor IBGE...[/bold yellow]")
+        console.print("\n[bold yellow]2/5. Executando coletor IBGE...[/bold yellow]")
         IbgeCollector().collect(db, max_items=limit)
 
         # 3. Câmara dos Deputados
-        console.print("\n[bold yellow]3/4. Executando coletor Câmara dos Deputados...[/bold yellow]")
+        console.print("\n[bold yellow]3/5. Executando coletor Câmara dos Deputados...[/bold yellow]")
         CamaraCollector().collect(db, max_items=limit)
 
         # 4. OpenAlex
-        console.print("\n[bold yellow]4/4. Executando coletor OpenAlex...[/bold yellow]")
+        console.print("\n[bold yellow]4/5. Executando coletor OpenAlex...[/bold yellow]")
         OpenAlexCollector().collect(db, max_items=limit)
 
         # 5. Classificação Temática
         console.print("\n[bold yellow]5/5. Processando e classificando documentos...[/bold yellow]")
-        count = ThematicClassifier().process_and_classify_all(db, limit=limit * 4)
+        ThematicClassifier().process_and_classify_all(db, limit=limit * 4)
+
+        # 6. Geração de Embeddings (se chave presente)
+        console.print("\n[bold yellow]6. Gerando embeddings semânticos via Gemini API...[/bold yellow]")
+        GeminiEmbedder().embed_pending_documents(db, limit=limit * 4)
 
     console.print("\n[bold green][OK] PIPELINE CONCLUIDO COM SUCESSO TOTAL![/bold green]\n")
     status()
@@ -119,6 +137,7 @@ def status():
         sources_count = db.query(Source).count()
         runs_count = db.query(CollectionRun).count()
         docs_count = db.query(Document).count()
+        embedded_docs = db.query(Document).filter(Document.embedding.is_not(None)).count()
         indicators_count = db.query(Indicator).count()
         topics_count = db.query(Topic).count()
         doc_topics_count = db.query(DocumentTopic).count()
@@ -133,6 +152,7 @@ def status():
         table.add_row("Fontes Cadastradas (sources)", str(sources_count), "Instituições mapeadas e auditadas")
         table.add_row("Execuções de Coleta (collection_runs)", str(runs_count), "Histórico de auditoria de pipelines")
         table.add_row("Documentos Textuais (documents)", str(docs_count), "Corpus limpo para NLP e Embeddings")
+        table.add_row("Documentos Vetorizados (embeddings)", str(embedded_docs), "Vetores de 768d gerados com Gemini")
         table.add_row("Indicadores Estatísticos (indicators)", str(indicators_count), "Séries temporais e demográficas")
         table.add_row("Eixos Temáticos (topics)", str(topics_count), "Taxonomia oficial dos 10 eixos ENEM")
         table.add_row("Classificações (document_topics)", str(doc_topics_count), "Vínculos documento-eixo com score")

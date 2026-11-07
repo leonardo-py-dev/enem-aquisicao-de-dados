@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = Field(default="", description="Supabase API URL")
     SUPABASE_ANON_KEY: str = Field(default="", description="Supabase Anon/Public Key")
 
+    # AI / Gemini API
+    GEMINI_API_KEY: str = Field(default="", description="Google Gemini API Key for Embeddings and RAG")
+
     # Storage paths
     RAW_DATA_DIR: Path = Field(default=BASE_DIR / "data" / "raw")
     PROCESSED_DATA_DIR: Path = Field(default=BASE_DIR / "data" / "processed")

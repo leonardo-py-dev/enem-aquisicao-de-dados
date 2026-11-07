@@ -29,7 +29,7 @@ class CompatibleVector(TypeDecorator):
         if dialect.name == "postgresql":
             try:
                 from pgvector.sqlalchemy import Vector
-                return dialect.type_descriptor(Vector(1536))
+                return dialect.type_descriptor(Vector(768))
             except Exception:
                 return dialect.type_descriptor(JSON())
         return dialect.type_descriptor(JSON())
