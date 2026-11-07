@@ -92,7 +92,7 @@ def embed(
 def run_all(
     limit: int = typer.Option(25, "--limit", "-l", help="Limite de itens por coletor"),
 ):
-    """Executa todos os coletores prioritários, classifica e vetoriza os documentos ingeridos."""
+    """Executa todos os coletores prioritários, classifica e vetoriza os documentos ingeridos com tolerância a falhas."""
     init_db()
     console.print("[bold cyan]==================================================[/bold cyan]")
     console.print("[bold cyan] INICIANDO PIPELINE COMPLETO DO ENEM PREDICTOR    [/bold cyan]")
@@ -103,29 +103,47 @@ def run_all(
 
         # 1. INEP
         console.print("\n[bold yellow]1/5. Executando coletor INEP...[/bold yellow]")
-        InepCollector().collect(db, max_items=limit)
+        try:
+            InepCollector().collect(db, max_items=limit)
+        except Exception as exc:
+            logger.error(f"[INEP] Erro no coletor: {exc}")
 
         # 2. IBGE
         console.print("\n[bold yellow]2/5. Executando coletor IBGE...[/bold yellow]")
-        IbgeCollector().collect(db, max_items=limit)
+        try:
+            IbgeCollector().collect(db, max_items=limit)
+        except Exception as exc:
+            logger.error(f"[IBGE] Erro no coletor: {exc}")
 
         # 3. Câmara dos Deputados
         console.print("\n[bold yellow]3/5. Executando coletor Câmara dos Deputados...[/bold yellow]")
-        CamaraCollector().collect(db, max_items=limit)
+        try:
+            CamaraCollector().collect(db, max_items=limit)
+        except Exception as exc:
+            logger.error(f"[Câmara] Erro no coletor: {exc}")
 
         # 4. OpenAlex
         console.print("\n[bold yellow]4/5. Executando coletor OpenAlex...[/bold yellow]")
-        OpenAlexCollector().collect(db, max_items=limit)
+        try:
+            OpenAlexCollector().collect(db, max_items=limit)
+        except Exception as exc:
+            logger.error(f"[OpenAlex] Erro no coletor: {exc}")
 
         # 5. Classificação Temática
         console.print("\n[bold yellow]5/5. Processando e classificando documentos...[/bold yellow]")
-        ThematicClassifier().process_and_classify_all(db, limit=limit * 4)
+        try:
+            ThematicClassifier().process_and_classify_all(db, limit=limit * 4)
+        except Exception as exc:
+            logger.error(f"[Classificação] Erro: {exc}")
 
         # 6. Geração de Embeddings (se chave presente)
         console.print("\n[bold yellow]6. Gerando embeddings semânticos via Gemini API...[/bold yellow]")
-        GeminiEmbedder().embed_pending_documents(db, limit=limit * 4)
+        try:
+            GeminiEmbedder().embed_pending_documents(db, limit=limit * 4)
+        except Exception as exc:
+            logger.error(f"[Embedder] Erro: {exc}")
 
-    console.print("\n[bold green][OK] PIPELINE CONCLUIDO COM SUCESSO TOTAL![/bold green]\n")
+    console.print("\n[bold green][OK] PIPELINE CONCLUIDO COM SUCESSO![/bold green]\n")
     status()
 
 
@@ -174,7 +192,7 @@ def status():
 
             for r in last_runs:
                 source_name = r.source.name if r.source else "N/A"
-                status_color = "green" if r.status == "success" else "red"
+                status_color = "green" if r.status == "success" else ("yellow" if r.status == "partial" else "red")
                 start_str = r.started_at.strftime("%Y-%m-%d %H:%M:%S") if r.started_at else ""
                 runs_table.add_row(
                     str(r.id),

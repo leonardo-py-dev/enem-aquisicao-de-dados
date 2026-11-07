@@ -29,10 +29,10 @@ class Settings(BaseSettings):
     PROCESSED_DATA_DIR: Path = Field(default=BASE_DIR / "data" / "processed")
 
     # Network / Scraping controls
-    DEFAULT_HTTP_TIMEOUT: float = Field(default=30.0, description="HTTP timeout in seconds")
-    DEFAULT_MAX_RETRIES: int = Field(default=3, description="Max retry attempts for collectors")
+    DEFAULT_HTTP_TIMEOUT: float = Field(default=15.0, description="HTTP timeout in seconds")
+    DEFAULT_MAX_RETRIES: int = Field(default=2, description="Max retry attempts for collectors")
     USER_AGENT: str = Field(
-        default="EnemPredictorDataPipeline/1.0 (+https://github.com/enem-predictor)",
+        default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         description="User-Agent header for HTTP requests",
     )
 

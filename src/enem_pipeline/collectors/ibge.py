@@ -27,9 +27,10 @@ class IbgeCollector(BaseCollector):
     def collect(self, db: Session, max_items: int = 50) -> any:
         run = self.start_run(db)
         source = self.get_or_create_source(db)
+        run_status = "success"
 
+        # 1. Coleta Notícias e Releases sobre temas sociais e econômicos
         try:
-            # 1. Coleta Notícias e Releases sobre temas sociais e econômicos
             params = {
                 "qtd": max_items,
             }
@@ -74,8 +75,12 @@ class IbgeCollector(BaseCollector):
                     published_at=pub_date,
                     metadata=metadata,
                 )
+        except Exception as exc:
+            logger.warning(f"[IBGE] Falha ao coletar notícias online ({exc}). Prosseguindo com indicadores...")
+            run_status = "partial"
 
-            # 2. Ingestão de Indicadores Demográficos e Sociais de Referência (IBGE)
+        # 2. Ingestão de Indicadores Demográficos e Sociais de Referência (IBGE)
+        try:
             indicadores_referencia = [
                 {
                     "name": "População Residente no Brasil (Censo 2022)",
@@ -130,7 +135,7 @@ class IbgeCollector(BaseCollector):
                 )
 
             db.commit()
-            self.finish_run(db, run, status="success")
+            self.finish_run(db, run, status=run_status)
         except Exception as exc:
             db.rollback()
             self.finish_run(db, run, status="failed", error_details=str(exc))
