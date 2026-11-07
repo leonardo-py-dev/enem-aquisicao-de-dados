@@ -103,6 +103,7 @@ HISTORICAL_ENEM_THEMES = [
     {"year": 2022, "official_theme": "Desafios para a valorização de comunidades e povos tradicionais no Brasil", "thematic_axis": "Cultura", "central_problem": "A marginalização cultural, conflitos fundiários e falta de reconhecimento institucional de quilombolas, ribeirinhos e povos indígenas."},
     {"year": 2023, "official_theme": "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil", "thematic_axis": "Trabalho e Economia", "central_problem": "A sobrecarga não remunerada e não reconhecida das mulheres na assistência de dependentes e tarefas domésticas."},
     {"year": 2024, "official_theme": "Desafios para a valorização da herança africana no Brasil", "thematic_axis": "Cultura", "central_problem": "O apagamento histórico e o racismo estrutural que desvalorizam a contribuição fundamental dos povos africanos para a identidade nacional."},
+    {"year": 2025, "official_theme": "Perspectivas acerca do envelhecimento na sociedade brasileira", "thematic_axis": "Demografia e Envelhecimento", "central_problem": "A rápida transição demográfica do país, o envelhecimento populacional, os desafios no SUS e na previdência, o etarismo e a garantia de qualidade de vida e dignidade para os idosos."},
 ]
 
 
