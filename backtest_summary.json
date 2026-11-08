@@ -1,0 +1,608 @@
+{
+  "years_evaluated": [
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "top1_accuracy": 0.2727272727272727,
+  "top3_hit_rate": 0.2727272727272727,
+  "mrr": 0.39480519480519477,
+  "mean_brier_score": 0.9308169900700851,
+  "mean_log_loss": 2.602523210878536,
+  "baseline_top3_rate": 0.3,
+  "relative_lift_top3": -9.090909090909093,
+  "binomial_test_p_value": 0.6872595457499996,
+  "yearly_results": [
+    {
+      "year": 2015,
+      "official_axis": "Direitos Humanos e Cidadania",
+      "official_theme": "A persistência da violência contra a mulher na sociedade brasileira",
+      "predicted_ranking": [
+        [
+          "Educação",
+          0.23631230078266258
+        ],
+        [
+          "Meio Ambiente",
+          0.18521750359430889
+        ],
+        [
+          "Desigualdade Social",
+          0.14250279113633685
+        ],
+        [
+          "Saúde",
+          0.14250279113633685
+        ],
+        [
+          "Trabalho e Economia",
+          0.13372897304719847
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.07443739030138312
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.024764091163033772
+        ],
+        [
+          "Tecnologia",
+          0.024764091163033772
+        ],
+        [
+          "Cultura",
+          0.017885033837852844
+        ],
+        [
+          "Segurança Pública",
+          0.017885033837852844
+        ]
+      ],
+      "rank_of_official": 6,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.16666666666666666,
+      "brier_score": 1.0071789700995935,
+      "log_loss": 2.5977969055686865
+    },
+    {
+      "year": 2016,
+      "official_axis": "Direitos Humanos e Cidadania",
+      "official_theme": "Caminhos para combater a intolerância religiosa no Brasil",
+      "predicted_ranking": [
+        [
+          "Educação",
+          0.2617107478658982
+        ],
+        [
+          "Meio Ambiente",
+          0.14786664287770926
+        ],
+        [
+          "Tecnologia",
+          0.1292787119603901
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.11398834822021649
+        ],
+        [
+          "Desigualdade Social",
+          0.10609092695858564
+        ],
+        [
+          "Saúde",
+          0.10609092695858564
+        ],
+        [
+          "Trabalho e Economia",
+          0.0951743368983186
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.021038266546677308
+        ],
+        [
+          "Cultura",
+          0.00938054585680939
+        ],
+        [
+          "Segurança Pública",
+          0.00938054585680939
+        ]
+      ],
+      "rank_of_official": 4,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.25,
+      "brier_score": 0.9242740139904606,
+      "log_loss": 2.1716590444058883
+    },
+    {
+      "year": 2017,
+      "official_axis": "Educação",
+      "official_theme": "Desafios para a formação educacional de surdos no Brasil",
+      "predicted_ranking": [
+        [
+          "Educação",
+          0.2549592323031821
+        ],
+        [
+          "Meio Ambiente",
+          0.16066269995510168
+        ],
+        [
+          "Trabalho e Economia",
+          0.14034048088782788
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.10884683863046717
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.09141484886372067
+        ],
+        [
+          "Tecnologia",
+          0.08693602907863335
+        ],
+        [
+          "Desigualdade Social",
+          0.06680970068152213
+        ],
+        [
+          "Saúde",
+          0.06680970068152213
+        ],
+        [
+          "Cultura",
+          0.011610234459011411
+        ],
+        [
+          "Segurança Pública",
+          0.011610234459011411
+        ]
+      ],
+      "rank_of_official": 1,
+      "top1_hit": true,
+      "top3_hit": true,
+      "reciprocal_rank": 1.0,
+      "brier_score": 0.6375525485862339,
+      "log_loss": 1.3666516199256669
+    },
+    {
+      "year": 2018,
+      "official_axis": "Tecnologia",
+      "official_theme": "Manipulação do comportamento do usuário pelo controle de dados na internet",
+      "predicted_ranking": [
+        [
+          "Meio Ambiente",
+          0.2986518615490442
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.22882919544604252
+        ],
+        [
+          "Trabalho e Economia",
+          0.1210129433818325
+        ],
+        [
+          "Segurança Pública",
+          0.08609742310421165
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.07473338082153151
+        ],
+        [
+          "Tecnologia",
+          0.07473338082153151
+        ],
+        [
+          "Desigualdade Social",
+          0.04997812374586652
+        ],
+        [
+          "Saúde",
+          0.04997812374586652
+        ],
+        [
+          "Cultura",
+          0.008163548663854887
+        ],
+        [
+          "Educação",
+          0.007822018720218126
+        ]
+      ],
+      "rank_of_official": 6,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.16666666666666666,
+      "brier_score": 1.0304394818112428,
+      "log_loss": 2.5938284215770877
+    },
+    {
+      "year": 2019,
+      "official_axis": "Cultura",
+      "official_theme": "Democratização do acesso ao cinema no Brasil",
+      "predicted_ranking": [
+        [
+          "Meio Ambiente",
+          0.29811568923882636
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.2629622717853896
+        ],
+        [
+          "Trabalho e Economia",
+          0.12055971018721512
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.10339755174927334
+        ],
+        [
+          "Desigualdade Social",
+          0.05407651682375098
+        ],
+        [
+          "Saúde",
+          0.05407651682375098
+        ],
+        [
+          "Cultura",
+          0.04485040733922133
+        ],
+        [
+          "Segurança Pública",
+          0.04485040733922133
+        ],
+        [
+          "Tecnologia",
+          0.010032548190729504
+        ],
+        [
+          "Educação",
+          0.007078380522621413
+        ]
+      ],
+      "rank_of_official": 7,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.14285714285714285,
+      "brier_score": 1.1035694162171894,
+      "log_loss": 3.1044226082616895
+    },
+    {
+      "year": 2020,
+      "official_axis": "Saúde",
+      "official_theme": "O estigma associado às doenças mentais na sociedade brasileira",
+      "predicted_ranking": [
+        [
+          "Meio Ambiente",
+          0.2572346946098794
+        ],
+        [
+          "Trabalho e Economia",
+          0.2572346946098794
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.18937926144313413
+        ],
+        [
+          "Segurança Pública",
+          0.13144330784424033
+        ],
+        [
+          "Desigualdade Social",
+          0.04712414778820728
+        ],
+        [
+          "Saúde",
+          0.04712414778820728
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.03839028657071054
+        ],
+        [
+          "Tecnologia",
+          0.019700661457568054
+        ],
+        [
+          "Cultura",
+          0.007114535253936006
+        ],
+        [
+          "Educação",
+          0.005254262634237513
+        ]
+      ],
+      "rank_of_official": 6,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.16666666666666666,
+      "brier_score": 1.0976144531495298,
+      "log_loss": 3.054969717447353
+    },
+    {
+      "year": 2021,
+      "official_axis": "Direitos Humanos e Cidadania",
+      "official_theme": "Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil",
+      "predicted_ranking": [
+        [
+          "Direitos Humanos e Cidadania",
+          0.32643001192410903
+        ],
+        [
+          "Meio Ambiente",
+          0.21635397553391184
+        ],
+        [
+          "Trabalho e Economia",
+          0.1916327562155548
+        ],
+        [
+          "Segurança Pública",
+          0.10244054008588271
+        ],
+        [
+          "Desigualdade Social",
+          0.06662633794803638
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.04540436564771926
+        ],
+        [
+          "Saúde",
+          0.022795093423476614
+        ],
+        [
+          "Tecnologia",
+          0.014740963910423016
+        ],
+        [
+          "Cultura",
+          0.008154240167256886
+        ],
+        [
+          "Educação",
+          0.005421715143629454
+        ]
+      ],
+      "rank_of_official": 1,
+      "top1_hit": true,
+      "top3_hit": true,
+      "reciprocal_rank": 1.0,
+      "brier_score": 0.5550561733309773,
+      "log_loss": 1.119539711822268
+    },
+    {
+      "year": 2022,
+      "official_axis": "Cultura",
+      "official_theme": "Desafios para a valorização de comunidades e povos tradicionais no Brasil",
+      "predicted_ranking": [
+        [
+          "Direitos Humanos e Cidadania",
+          0.30339180363603624
+        ],
+        [
+          "Meio Ambiente",
+          0.1702327370795164
+        ],
+        [
+          "Trabalho e Economia",
+          0.1702327370795164
+        ],
+        [
+          "Segurança Pública",
+          0.10639853403908664
+        ],
+        [
+          "Desigualdade Social",
+          0.07856957340020779
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.0755494732101399
+        ],
+        [
+          "Educação",
+          0.05658162932674298
+        ],
+        [
+          "Saúde",
+          0.021433417868099016
+        ],
+        [
+          "Tecnologia",
+          0.011089245401465612
+        ],
+        [
+          "Cultura",
+          0.006520848959189061
+        ]
+      ],
+      "rank_of_official": 10,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.1,
+      "brier_score": 1.1639911719681035,
+      "log_loss": 5.032750703055382
+    },
+    {
+      "year": 2023,
+      "official_axis": "Trabalho e Economia",
+      "official_theme": "Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil",
+      "predicted_ranking": [
+        [
+          "Tecnologia",
+          0.15888205861707108
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.13370343370364474
+        ],
+        [
+          "Segurança Pública",
+          0.13250140179407252
+        ],
+        [
+          "Trabalho e Economia",
+          0.13250140179407252
+        ],
+        [
+          "Meio Ambiente",
+          0.11953666950112195
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.09643108657814686
+        ],
+        [
+          "Educação",
+          0.09503820060560215
+        ],
+        [
+          "Desigualdade Social",
+          0.0872358412381863
+        ],
+        [
+          "Saúde",
+          0.02339270965828903
+        ],
+        [
+          "Cultura",
+          0.02077719650979283
+        ]
+      ],
+      "rank_of_official": 4,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.25,
+      "brier_score": 0.8544397882460975,
+      "log_loss": 2.0211620540339177
+    },
+    {
+      "year": 2024,
+      "official_axis": "Cultura",
+      "official_theme": "Desafios para a valorização da herança africana no Brasil",
+      "predicted_ranking": [
+        [
+          "Segurança Pública",
+          0.1894918751552305
+        ],
+        [
+          "Tecnologia",
+          0.15829850084601527
+        ],
+        [
+          "Meio Ambiente",
+          0.15749161790159422
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.13366780627390046
+        ],
+        [
+          "Educação",
+          0.10884926022089324
+        ],
+        [
+          "Desigualdade Social",
+          0.08732047319216578
+        ],
+        [
+          "Demografia e Envelhecimento",
+          0.08594954406676819
+        ],
+        [
+          "Trabalho e Economia",
+          0.028498495692448868
+        ],
+        [
+          "Saúde",
+          0.028050952372847215
+        ],
+        [
+          "Cultura",
+          0.02238147427813628
+        ]
+      ],
+      "rank_of_official": 10,
+      "top1_hit": false,
+      "top3_hit": false,
+      "reciprocal_rank": 0.1,
+      "brier_score": 1.0878336308980514,
+      "log_loss": 3.7995217034629905
+    },
+    {
+      "year": 2025,
+      "official_axis": "Demografia e Envelhecimento",
+      "official_theme": "Perspectivas acerca do envelhecimento na sociedade brasileira",
+      "predicted_ranking": [
+        [
+          "Demografia e Envelhecimento",
+          0.17110928550350346
+        ],
+        [
+          "Segurança Pública",
+          0.14418382419388306
+        ],
+        [
+          "Tecnologia",
+          0.13304016886175812
+        ],
+        [
+          "Direitos Humanos e Cidadania",
+          0.12440690487371492
+        ],
+        [
+          "Saúde",
+          0.1194274356577316
+        ],
+        [
+          "Meio Ambiente",
+          0.0996924184056503
+        ],
+        [
+          "Educação",
+          0.06982697269650366
+        ],
+        [
+          "Desigualdade Social",
+          0.06444541051990312
+        ],
+        [
+          "Cultura",
+          0.042080092271572576
+        ],
+        [
+          "Trabalho e Economia",
+          0.031787487015779194
+        ]
+      ],
+      "rank_of_official": 1,
+      "top1_hit": true,
+      "top3_hit": true,
+      "reciprocal_rank": 1.0,
+      "brier_score": 0.7770372424734563,
+      "log_loss": 1.7654528301029666
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "vetoed_axis": "Demografia e Envelhecimento",
+  "ranking": [
+    [
+      "Segurança Pública",
+      0.2623018302276817
+    ],
+    [
+      "Direitos Humanos e Cidadania",
+      0.22320997091773606
+    ],
+    [
+      "Educação",
+      0.12252787383547163
+    ],
+    [
+      "Saúde",
+      0.10048648250584548
+    ],
+    [
+      "Tecnologia",
+      0.0939371353750128
+    ],
+    [
+      "Meio Ambiente",
+      0.06423232474700546
+    ],
+    [
+      "Desigualdade Social",
+      0.05721488492807367
+    ],
+    [
+      "Cultura",
+      0.05060168656278478
+    ],
+    [
+      "Trabalho e Economia",
+      0.0254878109003884
+    ],
+    [
+      "Demografia e Envelhecimento",
+      0.0
+    ]
+  ],
+  "top3_proposals": [
+    {
+      "axis": "Segurança Pública",
+      "candidate_theme": "Desafios para o fortalecimento do policiamento comunitário e a valorização profissional nas forças de segurança pública",
+      "agente": "Ministério da Justiça e Segurança Pública (MJSP), em articulação estratégica com o Conselho Nacional de Comandantes-Gerais",
+      "acao": "Implementar a Matriz Curricular Nacional de Policiamento Cidadão e Mediação Conflitiva",
+      "meio_modo": "Por intermédio de repasses condicionados do Fundo Nacional de Segurança Pública (FNSP) vinculados à modernização doutrinária e psicológica",
+      "efeito": "Com o propósito de resguardar a integridade física tanto dos policiais quanto da comunidade, reduzindo índices de letalidade e aumentando a confiança social nas forças policiais",
+      "detalhamento": "Incluindo acompanhamento psicológico preventivo permanente, uso disseminado de câmeras corporais com custódia de dados auditada e programas habitacionais exclusivos para agentes"
+    },
+    {
+      "axis": "Direitos Humanos e Cidadania",
+      "candidate_theme": "Desafios para a erradicação da subnotificação e garantia da cidadania plena aos grupos historicamente invisibilizados",
+      "agente": "Ministério dos Direitos Humanos e da Cidadania (MDHC), em cooperação federativa com a Associação Nacional dos Defensores Públicos",
+      "acao": "Implantar caravanas itinerantes permanentes de registro civil unificado e emissão gratuita de documentação básica",
+      "meio_modo": "Por intermédio de postos móveis de atendimento dotados de tecnologia biométrica e conexão satelital que percorram periferias urbanas e sertões",
+      "efeito": "Com a finalidade de restabelecer a dignidade individual, combater a morte civil e facultar o acesso a todos os serviços públicos essenciais do Estado democrático",
+      "detalhamento": "Integrando cartórios civis, tribunais de justiça e assistência social no mesmo local para emissão instantânea da CIN e cadastramento no CadÚnico"
+    },
+    {
+      "axis": "Educação",
+      "candidate_theme": "Desafios para a erradicação do analfabetismo funcional e o letramento científico da juventude no Brasil contemporâneo",
+      "agente": "Ministério da Educação (MEC), em cooperação federativa com o Consed (Conselho Nacional de Secretários de Educação) e a Undime",
+      "acao": "Criar o Programa Nacional de Polos de Iniciação Científica e Letramento Crítico no contraturno da rede pública de educação básica",
+      "meio_modo": "Por intermédio da descentralização de recursos do Fundo Nacional de Desenvolvimento da Educação (FNDE) e concessão de bolsas pedagógicas a graduandos de licenciatura de universidades públicas",
+      "efeito": "Com o fito de erradicar o analfabetismo funcional, capacitar a juventude para a interpretação crítica de dados e argumentos científicos e romper o ciclo histórico de exclusão socioeducacional",
+      "detalhamento": "Essa iniciativa dotará as unidades escolares de bibliotecas laboratoriais com acervo científico interdisciplinar e oferecerá tutorias diagnósticas em pequenos grupos aos estudantes com defasagens registradas no SAEB"
+    }
+  ]
+}

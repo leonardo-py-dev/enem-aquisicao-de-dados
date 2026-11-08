@@ -42,8 +42,8 @@ O projeto é estruturado em uma arquitetura modular orientada a dados e aprendiz
 | M1 | Backtesting Walk-Forward & Estatística | Módulo `src/enem_pipeline/ml/backtest.py` com simulador cego (2015-2025), métricas (Top-1, Top-3, MRR, Brier Score, Log Loss) e teste binomial | none | DONE (92 testes verdes) |
 | M2 | Predição Oficial 2026 & Intervenções | Módulo `src/enem_pipeline/ml/predictor.py` com veto estrito a 2025, ranking 2026, geração das propostas nota 1000 nos 5 elementos e CLI | M1 | DONE (114 testes verdes) |
 | M3 | Infraestrutura de Execução Remota em Nuvem | Parametrização de `.github/workflows/data_pipeline.yml` com ação `ml-pipeline`, upload de artefatos e orquestração remota via `gh` | M2 | DONE (166 testes verdes) |
-| M4 | Relatório Interativo HTML Autocontido | Módulo `src/enem_pipeline/ml/report_generator.py` gerando `enem_predictor_report.html` com gráficos SVG, tabelas e propostas | M2 | DONE |
-| M5 | Execução Remota em Nuvem & Validação Final | Execução na nuvem via GitHub Actions, download do relatório final, validação da suíte E2E e auditoria forense de integridade | M3, M4 | IN_PROGRESS |
+| M4 | Relatório Interativo HTML Autocontido | Módulo `src/enem_pipeline/ml/report_generator.py` gerando `enem_predictor_report.html` com gráficos SVG, tabelas e propostas | M2 | DONE (67 testes verdes) |
+| M5 | Execução Remota em Nuvem & Validação Final | Execução na nuvem via GitHub Actions (`Run #42432048145`), download do relatório final e artefatos JSON, e validação de integridade | M3, M4 | DONE (100% sucesso em nuvem) |
 
 ## Interface Contracts
 
