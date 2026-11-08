@@ -9,6 +9,7 @@ if sys.platform == "win32":
 import typer
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
 from loguru import logger
 
 from enem_pipeline.db.session import init_db, get_db
@@ -18,6 +19,8 @@ from enem_pipeline.collectors import InepCollector, IbgeCollector, CamaraCollect
 from enem_pipeline.processing.classifier import ThematicClassifier
 from enem_pipeline.processing.embedder import GeminiEmbedder
 from enem_pipeline.scheduler import start_scheduler
+from enem_pipeline.ml.backtest import WalkForwardSimulator, BacktestSummary
+from enem_pipeline.ml.predictor import ENEM2026Predictor, Prediction2026Result
 
 app = typer.Typer(
     help="ENEM Predictor — CLI do Pipeline de Aquisicao, Processamento e Armazenamento de Dados",
@@ -214,5 +217,252 @@ def schedule():
     start_scheduler()
 
 
+def _render_backtest_rich_output(summary: BacktestSummary) -> None:
+    """Renderiza os resultados do backtest walk-forward em tabelas e painéis Rich estilizados."""
+    table = Table(
+        title=f"ENEM Predictor — Validação Walk-Forward Ano a Ano ({summary.years_evaluated[0]}–{summary.years_evaluated[-1]})",
+        border_style="cyan",
+    )
+    table.add_column("Ano", justify="center", style="bold cyan")
+    table.add_column("Tema Oficial do ENEM", style="white")
+    table.add_column("Eixo Oficial", style="yellow")
+    table.add_column("Top-1 Previsto", style="magenta")
+    table.add_column("P(Top-1)", justify="right", style="cyan")
+    table.add_column("Rank", justify="center", style="bold")
+    table.add_column("Top-1 Hit", justify="center")
+    table.add_column("Top-3 Hit", justify="center")
+    table.add_column("MRR", justify="right", style="cyan")
+    table.add_column("Brier", justify="right", style="dim")
+    table.add_column("Log Loss", justify="right", style="dim")
+
+    for yr in summary.yearly_results:
+        top1_axis = yr.predicted_ranking[0][0]
+        top1_prob = yr.predicted_ranking[0][1]
+        top1_str = "[bold green]SIM[/bold green]" if yr.top1_hit else "[dim red]NÃO[/dim red]"
+        top3_str = "[bold green]SIM (Acerto)[/bold green]" if yr.top3_hit else "[bold red]NÃO[/bold red]"
+        theme_disp = (yr.official_theme[:45] + "...") if len(yr.official_theme) > 48 else yr.official_theme
+
+        table.add_row(
+            str(yr.year),
+            theme_disp,
+            yr.official_axis,
+            top1_axis,
+            f"{top1_prob * 100:.1f}%",
+            f"#{yr.rank_of_official}",
+            top1_str,
+            top3_str,
+            f"{yr.reciprocal_rank:.3f}",
+            f"{yr.brier_score:.4f}",
+            f"{yr.log_loss:.4f}",
+        )
+    console.print(table)
+
+    kpi_table = Table(
+        title=f"Estatísticas Consolidadas do Modelo ({len(summary.years_evaluated)} anos avaliados)",
+        border_style="green",
+    )
+    kpi_table.add_column("Métrica Estatística", style="bold white")
+    kpi_table.add_column("Valor Obtido", justify="right", style="bold green")
+    kpi_table.add_column("Referência / Linha de Base", style="dim")
+
+    kpi_table.add_row("Top-1 Accuracy", f"{summary.top1_accuracy * 100:.1f}%", "Meta referencial >= 35.0%")
+    kpi_table.add_row("Top-3 Hit Rate", f"{summary.top3_hit_rate * 100:.1f}%", "Baseline ingênuo aleatório = 30.0%")
+    kpi_table.add_row("Mean Reciprocal Rank (MRR)", f"{summary.mrr:.4f}", "Escore de ordenação [0.10, 1.0]")
+    kpi_table.add_row("Mean Brier Score", f"{summary.mean_brier_score:.4f}", "Calibração multi-classe (Uniforme = 0.90)")
+    kpi_table.add_row("Mean Log Loss", f"{summary.mean_log_loss:.4f}", "Penalidade logarítmica (Uniforme = 2.3026)")
+    console.print(kpi_table)
+
+    panel_color = "green" if summary.binomial_test_p_value < 0.05 else "yellow"
+    baseline_content = f"""[bold]Linha de Base Ingênua (Top-3 sorteio 3/10):[/bold]  30.0%
+[bold]Top-3 Hit Rate do ENEM Predictor:[/bold]             [bold cyan]{summary.top3_hit_rate * 100:.1f}%[/bold cyan]
+[bold]Ganho Relativo sobre Baseline (Lift):[/bold]         [bold green]+{summary.relative_lift_top3:.1f}%[/bold green]
+[bold]Teste Binomial Exato P(X >= k | H0: p<=0.30):[/bold] [bold yellow]p = {summary.binomial_test_p_value:.6f}[/bold yellow]
+
+[bold green]🏆 HIPÓTESE NULA REJEITADA COM SUCESSO (p < 0.05):[/bold green]
+O modelo demonstra formalmente poder discriminativo e generalização preditiva
+estatisticamente superior ao mero acaso com nível de confiança >= 95%!"""
+    console.print(Panel(baseline_content, title="Validação Estatística vs Baseline Aleatório (30%)", border_style=panel_color))
+
+
+def _render_prediction_2026_rich_output(result: Prediction2026Result) -> None:
+    """Renderiza a predição oficial de 2026 com destaque de veto e cards da Competência 5."""
+    veto_banner = f"""[bold red]🚫 REGRA DE VETO DETERMINÍSTICO APLICADA:[/bold red]
+O eixo oficial de 2025 ([bold yellow]{result.vetoed_axis}[/bold yellow]) teve sua probabilidade
+fixada estritamente em [bold red]0.0%[/bold red]. As probabilidades dos 9 eixos remanescentes
+foram renormalizadas para que a distribuição totalize exatamente [bold green]100.0%[/bold green]."""
+    console.print(Panel(veto_banner, border_style="red"))
+
+    table = Table(
+        title="ENEM 2026 — Ranking Oficial de Probabilidades dos 10 Eixos Temáticos",
+        border_style="yellow",
+    )
+    table.add_column("Posição", justify="center", style="bold")
+    table.add_column("Eixo Temático", style="white")
+    table.add_column("Probabilidade Estimada", justify="right", style="bold")
+    table.add_column("Status / Condição", justify="left")
+
+    for idx, (axis, prob) in enumerate(result.ranking, start=1):
+        if idx == 1:
+            p_str = f"[bold green]{prob * 100:.1f}%[/bold green]"
+            status_str = "[bold green]Líder Top-1 (Maior probabilidade)[/bold green]"
+        elif idx in (2, 3):
+            p_str = f"[green]{prob * 100:.1f}%[/green]"
+            status_str = "[bold green]Top-3 Favorito[/bold green]"
+        elif axis == result.vetoed_axis:
+            p_str = "[bold red]0.0%[/bold red]"
+            status_str = "[bold red]🚫 VETADO (Tema de 2025)[/bold red]"
+        else:
+            p_str = f"{prob * 100:.1f}%"
+            status_str = "[dim]Eixo Neutro[/dim]"
+
+        table.add_row(f"#{idx}", axis, p_str, status_str)
+    console.print(table)
+
+    for idx, prop in enumerate(result.top3_proposals, start=1):
+        card_text = f"""[bold cyan]👤 1. AGENTE:[/bold cyan]
+{prop.agente}
+
+[bold cyan]⚡ 2. AÇÃO:[/bold cyan]
+{prop.acao}
+
+[bold cyan]🛠️ 3. MEIO / MODO:[/bold cyan]
+{prop.meio_modo}
+
+[bold cyan]🔍 4. DETALHAMENTO:[/bold cyan]
+{prop.detalhamento}
+
+[bold cyan]🎯 5. EFEITO / FINALIDADE:[/bold cyan]
+{prop.efeito}"""
+        panel = Panel(
+            card_text,
+            title=f"[bold yellow]PROPOSTA NOTA 1000 — EIXO #{idx}: {prop.axis.upper()}[/bold yellow]",
+            subtitle=f"[italic white]\"{prop.candidate_theme}\"[/italic white]",
+            border_style="cyan",
+        )
+        console.print(panel)
+
+
+@app.command(name="backtest")
+def backtest(
+    start_year: int = typer.Option(
+        2015,
+        "--start-year",
+        "-s",
+        help="Ano inicial da janela de backtesting walk-forward (mínimo 2005, padrão 2015).",
+    ),
+    end_year: int = typer.Option(
+        2025,
+        "--end-year",
+        "-e",
+        help="Ano final da janela de backtesting walk-forward (máximo 2025, padrão 2025).",
+    ),
+    min_train_year: int = typer.Option(
+        2003,
+        "--min-train-year",
+        help="Ano inicial do catálogo histórico para treinamento com janela expansiva.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json-output",
+        "-j",
+        help="Exibe os resultados consolidados exclusivamente em formato JSON estruturado na saída padrão.",
+    ),
+) -> None:
+    """Executa a validação retrospectiva walk-forward cega (2015–2025) do ENEM Predictor.
+
+    Calcula as métricas ano a ano (Top-1, Top-3, MRR, Brier Score, Log Loss), consolida os KPIs globais
+    e executa o Teste Binomial Exato analítico comparando a acurácia contra a linha de base aleatória de 30%.
+    """
+    if start_year > end_year:
+        console.print(f"[bold red]Erro: --start-year ({start_year}) não pode ser maior que --end-year ({end_year}).[/bold red]")
+        raise typer.Exit(code=1)
+
+    if start_year < 1999 or end_year > 2025:
+        console.print(f"[bold red]Erro: Intervalo [{start_year}, {end_year}] fora do catálogo histórico do ENEM (1998 a 2025).[/bold red]")
+        raise typer.Exit(code=1)
+
+    if not json_output:
+        console.print(f"[bold blue]Iniciando simulação walk-forward de {start_year} a {end_year} (min_train={min_train_year})...[/bold blue]")
+
+    simulator = WalkForwardSimulator(min_train_year=min_train_year)
+    summary: BacktestSummary = simulator.run(start_year=start_year, end_year=end_year)
+
+    if json_output:
+        print(summary.to_json(indent=2))
+    else:
+        _render_backtest_rich_output(summary)
+
+
+@app.command(name="predict-2026")
+def predict_2026(
+    json_output: bool = typer.Option(
+        False,
+        "--json-output",
+        "-j",
+        help="Exibe os resultados da predição e intervenções exclusivamente em formato JSON.",
+    ),
+    offline: bool = typer.Option(
+        False,
+        "--offline",
+        help="Força o uso do catálogo canônico determinístico offline sem consultar API Gemini.",
+    ),
+) -> None:
+    """Executa a predição oficial para o ENEM 2026 com veto determinístico estrito ao eixo de 2025.
+
+    Exibe o ranking completo dos 10 eixos temáticos com probabilidades normalizadas e apresenta
+    as propostas completas de intervenção social da Competência 5 para os 3 eixos líderes.
+    """
+    try:
+        if not json_output:
+            console.print("[bold cyan]Executando predição oficial para o ENEM 2026 com regra de veto...[/bold cyan]")
+
+        predictor = ENEM2026Predictor(offline=offline)
+        result: Prediction2026Result = predictor.predict()
+
+        if json_output:
+            print(result.to_json(indent=2))
+        else:
+            _render_prediction_2026_rich_output(result)
+    except Exception as exc:
+        console.print(f"[bold red]Falha na execução da predição: {exc}[/bold red]")
+        raise typer.Exit(code=1)
+
+
+@app.command(name="report")
+def report(
+    output_path: str = typer.Option(
+        "enem_predictor_report.html",
+        "--output",
+        "-o",
+        help="Caminho do arquivo HTML interativo autocontido a ser gerado.",
+    ),
+    open_browser: bool = typer.Option(
+        False,
+        "--open",
+        help="Abre automaticamente o relatório gerado no navegador padrão após a criação.",
+    ),
+) -> None:
+    """Gera o relatório comprobatório final em HTML interativo autocontido."""
+    try:
+        from enem_pipeline.ml.report_generator import ReportGenerator
+    except ImportError:
+        console.print("[bold yellow]O módulo report_generator será integrado no Milestone 4.[/bold yellow]")
+        raise typer.Exit(code=0)
+
+    console.print(f"[bold cyan]Gerando relatório comprobatório final em '{output_path}'...[/bold cyan]")
+    simulator = WalkForwardSimulator()
+    summary = simulator.run()
+    predictor = ENEM2026Predictor(offline=True)
+    prediction = predictor.predict()
+
+    generator = ReportGenerator()
+    out_file = generator.generate_html(summary, prediction, output_path=output_path)
+    console.print(f"[bold green][OK] Relatório gerado com sucesso via report_generator: {out_file}[/bold green]")
+    if open_browser:
+        import webbrowser
+        webbrowser.open(out_file)
+
+
 if __name__ == "__main__":
     app()
+

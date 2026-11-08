@@ -6,51 +6,82 @@ from sqlalchemy.orm import Session
 from loguru import logger
 
 from enem_pipeline.db.models import HistoricalTheme, Topic, Document, DocumentTopic, Source
+from enem_pipeline.db.seed import HISTORICAL_ENEM_THEMES, INITIAL_TOPICS
 
 
-def build_training_matrix(db: Session, min_year: int = 2005, max_year: int = 2024) -> pd.DataFrame:
+def build_training_matrix(
+    db: Optional[Session] = None,
+    min_year: int = 2005,
+    max_year: int = 2025,
+    historical_themes: Optional[List[Dict]] = None,
+    topics: Optional[List[Dict]] = None,
+) -> pd.DataFrame:
     """Constrói a matriz tabular de atributos históricos e debates sociais para os 10 eixos do ENEM.
 
     Gera uma linha por (ano, eixo), permitindo treinar modelos de Ranking / Classificação como XGBoost.
+    Suporta execução desacoplada sem sessão de banco (modo in-memory / fallback).
     """
     # 1. Carrega todos os temas históricos e mapeia ano -> eixo
-    themes = db.query(HistoricalTheme).order_by(HistoricalTheme.year.asc()).all()
-    history_by_year: Dict[int, str] = {t.year: t.thematic_axis for t in themes}
+    if historical_themes is not None:
+        history_by_year: Dict[int, str] = {
+            t["year"]: t["thematic_axis"] for t in historical_themes
+        }
+    elif db is not None:
+        try:
+            themes = db.query(HistoricalTheme).order_by(HistoricalTheme.year.asc()).all()
+            history_by_year = {t.year: t.thematic_axis for t in themes}
+            if not history_by_year:
+                history_by_year = {t["year"]: t["thematic_axis"] for t in HISTORICAL_ENEM_THEMES}
+        except Exception as e:
+            logger.warning(f"[ML] Falha ao consultar HistoricalTheme no DB: {e}. Usando seed estático.")
+            history_by_year = {t["year"]: t["thematic_axis"] for t in HISTORICAL_ENEM_THEMES}
+    else:
+        history_by_year = {t["year"]: t["thematic_axis"] for t in HISTORICAL_ENEM_THEMES}
 
     # 2. Carrega todos os 10 eixos oficiais
-    topics = db.query(Topic).all()
-    axes = [top.thematic_axis for top in topics]
+    if topics is not None:
+        axes = [top.get("thematic_axis") or top.get("name") for top in topics]
+    elif db is not None:
+        try:
+            db_topics = db.query(Topic).all()
+            axes = [top.thematic_axis for top in db_topics]
+        except Exception as e:
+            logger.warning(f"[ML] Falha ao consultar Topic no DB: {e}. Usando eixos canônicos.")
+            axes = []
+    else:
+        axes = []
+
     if not axes:
-        # Fallback de eixos caso ainda não tenham sido semeados no banco local
-        axes = [
-            "Educação", "Saúde", "Tecnologia", "Meio Ambiente", "Cultura",
-            "Trabalho e Economia", "Direitos Humanos e Cidadania",
-            "Desigualdade Social", "Segurança Pública", "Demografia e Envelhecimento"
-        ]
+        axes = [top["thematic_axis"] for top in INITIAL_TOPICS]
 
     # 3. Carrega contagem de documentos por ano, eixo e fonte
-    doc_query = (
-        db.query(
-            Document.published_at,
-            DocumentTopic.relevance_score,
-            Topic.thematic_axis,
-            Source.name.label("source_name"),
-        )
-        .join(DocumentTopic, Document.id == DocumentTopic.document_id)
-        .join(Topic, DocumentTopic.topic_id == Topic.id)
-        .join(Source, Document.source_id == Source.id)
-        .all()
-    )
-
     doc_records = []
-    for row in doc_query:
-        if row.published_at:
-            doc_records.append({
-                "year": row.published_at.year,
-                "axis": row.thematic_axis,
-                "score": row.relevance_score or 1.0,
-                "source": row.source_name,
-            })
+    if db is not None:
+        try:
+            doc_query = (
+                db.query(
+                    Document.published_at,
+                    DocumentTopic.relevance_score,
+                    Topic.thematic_axis,
+                    Source.name.label("source_name"),
+                )
+                .join(DocumentTopic, Document.id == DocumentTopic.document_id)
+                .join(Topic, DocumentTopic.topic_id == Topic.id)
+                .join(Source, Document.source_id == Source.id)
+                .all()
+            )
+            for row in doc_query:
+                if row.published_at:
+                    doc_records.append({
+                        "year": row.published_at.year,
+                        "axis": row.thematic_axis,
+                        "score": row.relevance_score or 1.0,
+                        "source": row.source_name,
+                    })
+        except Exception as e:
+            logger.warning(f"[ML] Falha ao consultar documentos no DB: {e}. Usando contagens padrão neutras.")
+            doc_records = []
+
     doc_df = pd.DataFrame(doc_records) if doc_records else pd.DataFrame(columns=["year", "axis", "score", "source"])
 
     rows = []

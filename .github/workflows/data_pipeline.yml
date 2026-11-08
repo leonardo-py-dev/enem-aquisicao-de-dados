@@ -13,6 +13,10 @@ on:
         type: choice
         options:
           - 'run-all'
+          - 'ml-pipeline'
+          - 'backtest'
+          - 'predict-2026'
+          - 'report'
           - 'seed'
           - 'classify'
           - 'embed'
@@ -36,7 +40,7 @@ on:
 
 jobs:
   pipeline:
-    name: Ingestão de Dados na Nuvem (Supabase)
+    name: Ingestão de Dados e Execução de ML na Nuvem (Supabase & Actions)
     runs-on: ubuntu-latest
 
     steps:
@@ -55,13 +59,20 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
-      - name: Executar Pipeline contra o Supabase
+      - name: Executar Pipeline contra o Supabase e Modelos de ML
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Headless Display & Terminal Output sem buffer (R4)
+          MPLBACKEND: Agg
+          PYTHONUNBUFFERED: "1"
+          FORCE_COLOR: "1"
+          TERM: xterm-256color
+          COLUMNS: "120"
+          QT_QPA_PLATFORM: offscreen
         run: |
           ACTION="${{ github.event.inputs.action || 'run-all' }}"
           LIMIT="${{ github.event.inputs.limit || '50' }}"
@@ -81,11 +92,62 @@ jobs:
             python -m enem_pipeline.cli embed --limit "$LIMIT"
           elif [ "$ACTION" = "status" ]; then
             python -m enem_pipeline.cli status
+          elif [ "$ACTION" = "ml-pipeline" ]; then
+            echo "=================================================="
+            echo "1/3. Executando Backtesting Walk-Forward (2015-2025)..."
+            echo "=================================================="
+            python -m enem_pipeline.cli backtest
+            python -m enem_pipeline.cli backtest --json-output > backtest_summary.json
+
+            echo "=================================================="
+            echo "2/3. Executando Predição Oficial ENEM 2026..."
+            echo "=================================================="
+            python -m enem_pipeline.cli predict-2026
+            python -m enem_pipeline.cli predict-2026 --json-output > prediction_2026.json
+
+            echo "=================================================="
+            echo "3/3. Gerando Relatório Comprobatório Final em HTML..."
+            echo "=================================================="
+            python -m enem_pipeline.cli report --output enem_predictor_report.html
+
+            echo "=================================================="
+            echo "Validando Suíte de Testes Unitários na Nuvem..."
+            echo "=================================================="
+            pytest tests/unit/test_backtest.py tests/unit/test_predictor.py tests/unit/test_cli_ml.py tests/unit/test_report_generator.py -v
+          elif [ "$ACTION" = "backtest" ]; then
+            python -m enem_pipeline.cli backtest
+            python -m enem_pipeline.cli backtest --json-output > backtest_summary.json
+          elif [ "$ACTION" = "predict-2026" ]; then
+            python -m enem_pipeline.cli predict-2026
+            python -m enem_pipeline.cli predict-2026 --json-output > prediction_2026.json
+          elif [ "$ACTION" = "report" ]; then
+            python -m enem_pipeline.cli report --output enem_predictor_report.html
           else
             python -m enem_pipeline.cli run --source "$SOURCE" --limit "$LIMIT"
           fi
 
-          echo "=========================================="
-          echo "Painel de Status Final pós-execução:"
-          echo "=========================================="
-          python -m enem_pipeline.cli status
+          if [ "$ACTION" != "ml-pipeline" ] && [ "$ACTION" != "backtest" ] && [ "$ACTION" != "predict-2026" ] && [ "$ACTION" != "report" ]; then
+            echo "=========================================="
+            echo "Painel de Status Final pós-execução:"
+            echo "=========================================="
+            python -m enem_pipeline.cli status
+          else
+            echo "=========================================="
+            echo "Resumo dos Artefatos de Machine Learning Gerados:"
+            echo "=========================================="
+            ls -lh enem_predictor_report.html backtest_summary.json prediction_2026.json 2>/dev/null || true
+          fi
+
+      - name: Exportar Artefatos do Modelo e Relatório (R4)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enem-predictor-artifacts
+          path: |
+            enem_predictor_report.html
+            backtest_summary.json
+            prediction_2026.json
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
+          overwrite: true
