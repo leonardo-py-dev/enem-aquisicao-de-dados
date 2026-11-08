@@ -113,7 +113,7 @@ jobs:
             echo "=================================================="
             echo "Validando Suíte de Testes Unitários na Nuvem..."
             echo "=================================================="
-            pytest tests/unit/test_backtest.py tests/unit/test_predictor.py tests/unit/test_cli_ml.py tests/unit/test_report_generator.py -v
+            NO_COLOR=1 FORCE_COLOR=0 pytest tests/unit/test_backtest.py tests/unit/test_predictor.py tests/unit/test_cli_ml.py tests/unit/test_report_generator.py -v
           elif [ "$ACTION" = "backtest" ]; then
             python -m enem_pipeline.cli backtest
             python -m enem_pipeline.cli backtest --json-output > backtest_summary.json

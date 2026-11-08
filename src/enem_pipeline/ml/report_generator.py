@@ -445,7 +445,12 @@ class ReportGenerator:
             "backtest_summary": backtest_summary.to_dict(),
             "prediction_2026": prediction_2026.to_dict(),
         }
-        embedded_json_str = json.dumps(embedded_payload, ensure_ascii=False).replace("</", "<\\/")
+        embedded_json_str = (
+            json.dumps(embedded_payload, ensure_ascii=False)
+            .replace("<", "\\u003c")
+            .replace(">", "\\u003e")
+            .replace("&", "\\u0026")
+        )
 
         html_doc = f"""<!DOCTYPE html>
 <html lang="pt-BR">

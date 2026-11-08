@@ -251,15 +251,19 @@ def test_cli_predict_2026_error_handling():
 
 def test_cli_help_texts():
     """Valida a formatação e presença de documentação em --help."""
+    import re
+    ansi_re = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
     runner = CliRunner()
 
     res_backtest = runner.invoke(app, ["backtest", "--help"])
+    clean_backtest = ansi_re.sub("", res_backtest.stdout)
     assert res_backtest.exit_code == 0
-    assert "--start-year" in res_backtest.stdout
-    assert "--end-year" in res_backtest.stdout
-    assert "--json-output" in res_backtest.stdout
+    assert "--start-year" in clean_backtest
+    assert "--end-year" in clean_backtest
+    assert "--json-output" in clean_backtest
 
     res_predict = runner.invoke(app, ["predict-2026", "--help"])
+    clean_predict = ansi_re.sub("", res_predict.stdout)
     assert res_predict.exit_code == 0
-    assert "--json-output" in res_predict.stdout
-    assert "--offline" in res_predict.stdout
+    assert "--json-output" in clean_predict
+    assert "--offline" in clean_predict
